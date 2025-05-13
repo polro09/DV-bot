@@ -8,7 +8,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates // 보이스룸 기능에 필요한 인텐트 추가
   ],
   partials: [Partials.GuildMember, Partials.Channel, Partials.Message] // 부분 객체 지원 추가
 });
@@ -28,6 +29,11 @@ function loadModules() {
     const voteModule = require('./modules/vote-module.js');
     client.modules.set(voteModule.name, voteModule);
     console.log(`✅ 모듈 로드 성공: ${voteModule.name}`);
+    
+    // 보이스룸 모듈 로드 - 새로 추가된 부분
+    const voiceRoomModule = require('./modules/voice-room-module.js');
+    client.modules.set(voiceRoomModule.name, voiceRoomModule);
+    console.log(`✅ 모듈 로드 성공: ${voiceRoomModule.name}`);
   } catch (error) {
     console.error('❌ 모듈 로드 실패:', error.message);
   }
@@ -75,6 +81,16 @@ client.on('messageCreate', message => {
   // 메시지가 접두사로 시작하면 로그 출력
   if (message.content.startsWith(prefix)) {
     console.log(`📝 메시지 감지 (${message.guild.name} / #${message.channel.name}): ${message.content}`);
+    
+    // 보이스룸 상태 확인 명령어 - 보이스룸 모듈 관련 기능 추가
+    if (message.content === `${prefix}보이스룸상태`) {
+      const voiceRoomModule = client.modules.get('voice-room-module');
+      if (voiceRoomModule) {
+        voiceRoomModule.showVoiceRoomStatus(message);
+      } else {
+        message.reply('⚠️ 보이스룸 모듈이 로드되지 않았습니다.');
+      }
+    }
   }
 });
 
